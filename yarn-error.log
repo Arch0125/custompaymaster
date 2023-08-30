@@ -1,0 +1,43 @@
+Arguments: 
+  /Users/archisman/.nvm/versions/node/v18.17.1/bin/node /Users/archisman/.nvm/versions/node/v18.17.1/bin/yarn deploy
+
+PATH: 
+  /Users/archisman/.cargo/bin:/opt/homebrew/bin:/Users/archisman/.nvm/versions/node/v18.17.1/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Users/archisman/.fig/bin:/Users/archisman/.local/bin:/Users/archisman/.foundry/bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  18.17.1
+
+Platform: 
+  darwin arm64
+
+Trace: 
+  SyntaxError: /Users/archisman/Desktop/custompaymaster/package.json: Unexpected string in JSON at position 200
+      at JSON.parse (<anonymous>)
+      at /Users/archisman/.nvm/versions/node/v18.17.1/lib/node_modules/yarn/lib/cli.js:1629:59
+      at Generator.next (<anonymous>)
+      at step (/Users/archisman/.nvm/versions/node/v18.17.1/lib/node_modules/yarn/lib/cli.js:310:30)
+      at /Users/archisman/.nvm/versions/node/v18.17.1/lib/node_modules/yarn/lib/cli.js:321:13
+
+npm manifest: 
+  {
+    "name": "hardhat-project",
+    "devDependencies": {
+      "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+      "hardhat": "^2.17.2"
+    },
+    "dependencies": {
+      "@openzeppelin/contracts": "^4.9.3"
+    }
+    "scripts": {
+      "deploy": "hardhat run scripts/deploy.ts --network localhost"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
