@@ -1,28 +1,35 @@
-import { ethers } from "hardhat";
+import { ethers } from "ethers";
+import { ContractFactory } from "ethers";
+import PaymasterArtifact from "../artifacts/contracts/CustomPaymaster.sol/CustomPaymaster.json";
 
 async function main() {
-  // const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  // const unlockTime = currentTimestampInSeconds + 60;
+  const metadata = PaymasterArtifact.bytecode;
+  const abi = PaymasterArtifact.abi;
 
-  // const lockedAmount = ethers.parseEther("0.001");
+  const mnemonic =
+    "test test test test test test test test test test test junk";
+  const pvtkey1 = ethers.Wallet.fromMnemonic(
+    mnemonic,
+    "m/44'/60'/0'/0/0"
+  ).privateKey;
 
-  // const lock = await ethers.deployContract("Lock", [unlockTime], {
-  //   value: lockedAmount,
-  // });
+  const provider = ethers.getDefaultProvider("http://127.0.0.1:8545");
 
-  // await lock.waitForDeployment();
+  const signer = new ethers.Wallet(pvtkey1,provider);
 
-  // console.log(
-  //   `Lock with ${ethers.formatEther(
-  //     lockedAmount
-  //   )}ETH and unlock timestamp ${unlockTime} deployed to ${lock.target}`
-  // );
-
-  const custompaymaster = await ethers.deployContract("CustomPaymaster", ["0x3647fABd9F0a8CF5CCd9246Cd559BB2E40a8c43F","USDC","0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee"]);
-
-  console.log(
-    `CustomPaymaster deployed to ${custompaymaster.target}`
+  const customPaymasterContract = new ethers.ContractFactory(
+    abi,
+    metadata,
+    signer
   );
+
+  const custompaymaster = await customPaymasterContract.deploy(
+    "0x3647fABd9F0a8CF5CCd9246Cd559BB2E40a8c43F",
+    "USDC",
+    "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
+  );
+
+  console.log(`CustomPaymaster deployed to ${custompaymaster.address}`);
 }
 
 // We recommend this pattern to be able to use async/await everywhere
