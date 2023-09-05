@@ -26,12 +26,12 @@ async function main() {
 
   const paymasterABI = PaymasterArtifact.abi;
   const paymasterContract = new ethers.Contract(
-    "0x5fc748f1FEb28d7b76fa1c6B07D8ba2d5535177c",
+    "0xe039608E695D21aB11675EBBA00261A0e750526c",
     paymasterABI,
     wallet1
   );
   const testToken = new ethers.Contract(
-    "0xB82008565FdC7e44609fA118A4a681E92581e680",
+    "0x071586BA1b380B00B793Cc336fe01106B0BFbE6D",
     TestTokenArtifact.abi,
     wallet1
   );
@@ -61,18 +61,14 @@ async function main() {
     value: ethers.utils.parseEther("10"),
   });
 
-  console.log(
-    "ERC20 Balance before userOp : ",
-    (await testToken.balanceOf(await scw1.getAccountAddress())).toString()
-  );
-  console.log(
-    "Native Balance before userOp : ",
-    (await provider.getBalance(await scw1.getAccountAddress())).toString()
-  );
-  console.log(
-    "Paymaster Native Balance before userOp : ",
-    (await provider.getBalance(paymasterContract.address)).toString()
-  );
+  const beforeOp = {
+    'Description': 'Before UserOp',
+    'ERC20 Balance': ethers.utils.formatEther((await testToken.balanceOf(await scw1.getAccountAddress())).toString()),
+    'Native Balance': ethers.utils.formatEther(await provider.getBalance(await scw1.getAccountAddress())).toString(),
+    'Paymaster Native Balance': ethers.utils.formatEther(await provider.getBalance(paymasterContract.address)).toString()
+  };
+
+  console.table([beforeOp]);
 
   const tokenApprovePaymaster = await testToken.populateTransaction
     .approve(paymasterContract.address, ethers.constants.MaxUint256)
@@ -106,9 +102,15 @@ async function main() {
   const signedUserOp1 = await scw1.signUserOp(userOp1);
 
   console.log(await client.sendUserOpToBundler(signedUserOp1));
-  console.log("ERC20 Balance before userOp : ", (await testToken.balanceOf(await scw1.getAccountAddress())).toString());
-  console.log("Native Balance before userOp : ",(await provider.getBalance(await scw1.getAccountAddress())).toString());
-  console.log("Paymaster Native Balance before userOp : ",(await provider.getBalance(paymasterContract.address)).toString());
+  const afterOp = {
+    'Description': 'After UserOp',
+    'ERC20 Balance': ethers.utils.formatEther(await testToken.balanceOf(await scw1.getAccountAddress())).toString(),
+    'Native Balance': ethers.utils.formatEther(await provider.getBalance(await scw1.getAccountAddress())).toString(),
+    'Paymaster Native Balance': ethers.utils.formatEther(await provider.getBalance(paymasterContract.address)).toString()
+  };
+
+  const tableData = [beforeOp, afterOp];
+  console.table(tableData);
 }
 
 main();

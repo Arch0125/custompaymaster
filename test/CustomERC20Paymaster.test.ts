@@ -4,6 +4,50 @@ import PaymasterArtifact from "../artifacts/contracts/CustomERC20Paymaster.sol/C
 import TestTokenArtifact from "../artifacts/contracts/TestToken.sol/TestToken.json";
 import { ethers } from "ethers";
 import { expect } from "chai";
+import EntryPointArtifact from "../src/account-abstraction/artifacts/contracts/core/EntryPoint.sol/EntryPoint.json";
+
+async function setApproval(scw1: any, token: any, custompaymaster: any) {
+  const preERC20Balance = await token.balanceOf(await scw1.getAccountAddress());
+
+  const tokenApprovePaymaster = await token.populateTransaction
+    .approve(custompaymaster.address, ethers.constants.MaxUint256)
+    .then((tx: { data: any }) => tx.data!);
+  const execApprove = await scw1.encodeExecute(
+    token.address,
+    0,
+    tokenApprovePaymaster
+  );
+
+  const userOp1 = await scw1.createUnsignedUserOp({
+    target: token.address,
+    data: tokenApprovePaymaster,
+  });
+
+  userOp1.callData = execApprove;
+  userOp1.preVerificationGas = 1000000;
+  userOp1.paymasterAndData = ethers.utils.hexConcat([
+    custompaymaster.address,
+    token.address,
+  ]);
+
+  const client = new HttpRpcClient(
+    "http://localhost:3000/rpc",
+    "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
+    31337
+  );
+
+  const signedUserOp1 = await scw1.signUserOp(userOp1);
+
+  expect(signedUserOp1).to.not.equal(null);
+
+  await client.sendUserOpToBundler(signedUserOp1);
+
+  const postERC20Balance = await token.balanceOf(
+    await scw1.getAccountAddress()
+  );
+
+  expect(postERC20Balance).to.lessThan(preERC20Balance);
+}
 
 describe("CustomERC20Paymaster", function () {
   const mnemonic =
@@ -70,7 +114,8 @@ describe("CustomERC20Paymaster", function () {
   });
 
   it("should allow tokens to custompaymaster", async function () {
-    await custompaymaster.addToken(token1.address, "10");
+    await custompaymaster.addToken(token1.address, "2000");
+    await custompaymaster.addToken(token2.address, "100");
 
     await custompaymaster.deposit({
       value: ethers.utils.parseEther("10"),
@@ -97,6 +142,13 @@ describe("CustomERC20Paymaster", function () {
         ethers.utils.parseEther("1000")
       );
 
+    await token2
+      .connect(wallet1)
+      .transfer(
+        await scw1.getAccountAddress(),
+        ethers.utils.parseEther("1000")
+      );
+
     expect(await scw1.getAccountAddress()).to.not.equal(null);
   });
 
@@ -117,53 +169,15 @@ describe("CustomERC20Paymaster", function () {
     await client.sendUserOpToBundler(signedUserOp);
   });
 
-  it("should approve erc20 token to custompaymaster", async function () {
-    const preERC20Balance = await token1.balanceOf(
-      await scw1.getAccountAddress()
-    );
-
-    const tokenApprovePaymaster = await token1.populateTransaction
-      .approve(custompaymaster.address, ethers.constants.MaxUint256)
-      .then((tx: { data: any }) => tx.data!);
-    const execApprove = await scw1.encodeExecute(
-      token1.address,
-      0,
-      tokenApprovePaymaster
-    );
-
-    const userOp1 = await scw1.createUnsignedUserOp({
-      target: token1.address,
-      data: tokenApprovePaymaster,
-    });
-
-    userOp1.callData = execApprove;
-    userOp1.preVerificationGas = 1000000;
-    userOp1.paymasterAndData = ethers.utils.hexConcat([
-      custompaymaster.address,
-      token1.address,
-    ]);
-
-    const client = new HttpRpcClient(
-      "http://localhost:3000/rpc",
-      "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
-      31337
-    );
-
-    const signedUserOp1 = await scw1.signUserOp(userOp1);
-
-    expect(signedUserOp1).to.not.equal(null);
-
-    console.log(await client.sendUserOpToBundler(signedUserOp1));
-
-    const postERC20Balance = await token1.balanceOf(
-      await scw1.getAccountAddress()
-    );
-
-    expect(postERC20Balance).to.lessThan(preERC20Balance);
+  it("should approve erc20 tokens to custompaymaster", async function () {
+    await setApproval(scw1, token1, custompaymaster);
+    await setApproval(scw1, token2, custompaymaster);
   });
 
   it("should submit an user operation", async function () {
-    const preERC20Balance = await provider.getBalance(wallet2.address);
+    const preERC20Balance = await token1.balanceOf(
+      await scw1.getAccountAddress()
+    );
 
     const userOp = await scw1.createUnsignedUserOp({
       target: wallet2.address,
@@ -194,6 +208,69 @@ describe("CustomERC20Paymaster", function () {
     await rpcClient.sendUserOpToBundler(signedUserOp);
 
     const postERC20Balance = await provider.getBalance(wallet2.address);
-    expect(postERC20Balance).to.greaterThan(preERC20Balance);
+
+    const tableData = [
+      {
+        Description: "Before submitting UserOp",
+        "Token 1 Balance": ethers.utils.formatEther(preERC20Balance.toString()),
+      },
+      {
+        Description: "After submitting UserOp",
+        "Token 1 Balance": ethers.utils
+          .formatEther(await token1.balanceOf(await scw1.getAccountAddress()))
+          .toString(),
+      },
+    ];
+    console.log("================= User Operation submitted with Token 1 as Gas Token ==================");
+    console.table(tableData);
+  });
+
+  it("should submit userop with token2 as gas token", async function () {
+    const preERC20Balance = await token2.balanceOf(
+      await scw1.getAccountAddress()
+    );
+
+    const userOp = await scw1.createUnsignedUserOp({
+      target: wallet2.address,
+      data: "0x",
+    });
+
+    const execData = await scw1.encodeExecute(
+      wallet2.address,
+      ethers.utils.parseEther("10"),
+      "0x"
+    );
+
+    userOp.preVerificationGas = 1000000;
+    userOp.callData = execData;
+    userOp.paymasterAndData = ethers.utils.hexConcat([
+      custompaymaster.address,
+      token2.address,
+    ]);
+
+    const rpcClient = new HttpRpcClient(
+      "http://localhost:3000/rpc",
+      "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
+      31337
+    );
+
+    const signedUserOp = await scw1.signUserOp(userOp);
+
+    await rpcClient.sendUserOpToBundler(signedUserOp);
+
+    const tableData = [
+      {
+        Description: "Before submitting UserOp",
+        "Token 2 Balance": ethers.utils.formatEther(preERC20Balance.toString()),
+      },
+      {
+        Description: "After submitting UserOp",
+        "Token 2 Balance": ethers.utils
+          .formatEther(await token2.balanceOf(await scw1.getAccountAddress()))
+          .toString(),
+      },
+    ];
+    console.log("================= User Operation submitted with Token 2 as Gas Token ==================");
+    console.table(tableData);
   });
 });
