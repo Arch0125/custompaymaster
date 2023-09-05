@@ -25,14 +25,14 @@ async function main() {
 
   const paymasterABI = PaymasterArtifact.abi;
   const paymasterContract = new ethers.Contract(
-    "0x21dF544947ba3E8b3c32561399E88B52Dc8b2823",
+    "0x07882Ae1ecB7429a84f1D53048d35c4bB2056877",
     paymasterABI,
     wallet1
   );
 
-  //   await paymasterContract.deposit({
-  //     value: ethers.utils.parseEther("10")
-  //   })
+    // await paymasterContract.deposit({
+    //   value: ethers.utils.parseEther("10")
+    // })
 
   const scw1 = new SimpleAccountAPI({
     provider,
@@ -70,9 +70,9 @@ async function main() {
     ).toString()
   );
 
-  // await paymasterContract
-  //   .connect(wallet1)
-  //   .mintTokens("0xc0B346d54091B5B527db14F5cc9F56a18E698E85", ethers.utils.parseEther("1000000000000000"))
+//   await paymasterContract
+//     .connect(wallet1)
+//     .mintTokens("0xc0B346d54091B5B527db14F5cc9F56a18E698E85", ethers.utils.parseEther("10"))
 
   let userOp = await scw1.createUnsignedUserOp({
     target: wallet2.address,
