@@ -26,12 +26,12 @@ async function main() {
 
   const paymasterABI = PaymasterArtifact.abi;
   const paymasterContract = new ethers.Contract(
-    "0x776D6996c8180838dC0587aE0DE5D614b1350f37",
+    "0x5fc748f1FEb28d7b76fa1c6B07D8ba2d5535177c",
     paymasterABI,
     wallet1
   );
   const testToken = new ethers.Contract(
-    "0xf93b0549cD50c849D792f0eAE94A598fA77C7718",
+    "0xB82008565FdC7e44609fA118A4a681E92581e680",
     TestTokenArtifact.abi,
     wallet1
   );
@@ -54,7 +54,12 @@ async function main() {
     factoryAddress: "0x3647fABd9F0a8CF5CCd9246Cd559BB2E40a8c43F",
   });
 
-  // await testToken.mint(await scw1.getAccountAddress(), ethers.utils.parseEther("1000000"));
+  await testToken.mint(await scw1.getAccountAddress(), ethers.utils.parseEther("1000000"));
+
+  await wallet1.sendTransaction({
+    to: await scw1.getAccountAddress(),
+    value: ethers.utils.parseEther("10"),
+  });
 
   console.log(
     "ERC20 Balance before userOp : ",
@@ -92,8 +97,6 @@ async function main() {
     testToken.address,
     ]);
 
-  console.log("userOp1 : ", userOp1);
-
   const client = new HttpRpcClient(
     "http://localhost:3000/rpc",
     "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
@@ -104,8 +107,8 @@ async function main() {
 
   console.log(await client.sendUserOpToBundler(signedUserOp1));
   console.log("ERC20 Balance before userOp : ", (await testToken.balanceOf(await scw1.getAccountAddress())).toString());
-  // console.log("Native Balance before userOp : ",(await provider.getBalance(await scw1.getAccountAddress())).toString());
-  // console.log("Paymaster Native Balance before userOp : ",(await provider.getBalance(paymasterContract.address)).toString());
+  console.log("Native Balance before userOp : ",(await provider.getBalance(await scw1.getAccountAddress())).toString());
+  console.log("Paymaster Native Balance before userOp : ",(await provider.getBalance(paymasterContract.address)).toString());
 }
 
 main();

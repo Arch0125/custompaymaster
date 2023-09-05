@@ -100,6 +100,23 @@ describe("CustomERC20Paymaster", function () {
     expect(await scw1.getAccountAddress()).to.not.equal(null);
   });
 
+  it("should deploy the scw for the first time ", async function () {
+    const userOp = await scw1.createUnsignedUserOp({
+      target: wallet2.address,
+      data: "0x",
+    });
+
+    const client = new HttpRpcClient(
+      "http://localhost:3000/rpc",
+      "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee",
+      31337
+    );
+
+    const signedUserOp = await scw1.signUserOp(userOp);
+
+    await client.sendUserOpToBundler(signedUserOp);
+  });
+
   it("should approve erc20 token to custompaymaster", async function () {
     const preERC20Balance = await token1.balanceOf(
       await scw1.getAccountAddress()
@@ -153,7 +170,11 @@ describe("CustomERC20Paymaster", function () {
       data: "0x",
     });
 
-    const execData = await scw1.encodeExecute(wallet2.address, ethers.utils.parseEther("10"), "0x");
+    const execData = await scw1.encodeExecute(
+      wallet2.address,
+      ethers.utils.parseEther("10"),
+      "0x"
+    );
 
     userOp.preVerificationGas = 1000000;
     userOp.callData = execData;
