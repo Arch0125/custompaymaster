@@ -87,6 +87,9 @@ contract CustomERC20Paymaster is BasePaymaster {
         );
         address account = userOp.getSender();
         uint256 maxTokenCost = getTokenValueOfEth(token, maxCost);
+        require(
+            token.balanceOf(account) >= maxTokenCost,
+            "DepositPaymaster: insufficient balance");
         uint256 gasPriceUserOp = userOp.gasPrice();
         return (
             abi.encode(account, token, gasPriceUserOp, maxTokenCost, maxCost),

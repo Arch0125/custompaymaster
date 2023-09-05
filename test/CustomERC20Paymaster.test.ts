@@ -106,10 +106,10 @@ describe("CustomERC20Paymaster", function () {
     expect(token1.address).to.not.equal(null);
     expect(token2.address).to.not.equal(null);
     expect(await token1.balanceOf(wallet1.address)).to.equal(
-      "1000000000000000000000000"
+      "20000000000000000000"
     );
     expect(await token2.balanceOf(wallet1.address)).to.equal(
-      "1000000000000000000000000"
+      "20000000000000000000"
     );
   });
 
@@ -139,14 +139,14 @@ describe("CustomERC20Paymaster", function () {
       .connect(wallet1)
       .transfer(
         await scw1.getAccountAddress(),
-        ethers.utils.parseEther("1000")
+        ethers.utils.parseEther("10")
       );
 
     await token2
       .connect(wallet1)
       .transfer(
         await scw1.getAccountAddress(),
-        ethers.utils.parseEther("1000")
+        ethers.utils.parseEther("10")
       );
 
     expect(await scw1.getAccountAddress()).to.not.equal(null);
