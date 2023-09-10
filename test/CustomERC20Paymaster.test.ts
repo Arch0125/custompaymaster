@@ -138,11 +138,11 @@ describe("CustomERC20Paymaster", function () {
 
     await token1
       .connect(wallet1)
-      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("50"));
+      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("10"));
 
     await token2
       .connect(wallet1)
-      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("50"));
+      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("10"));
 
     expect(await scw1.getAccountAddress()).to.not.equal(null);
   });

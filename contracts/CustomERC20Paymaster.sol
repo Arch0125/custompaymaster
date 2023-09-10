@@ -46,12 +46,18 @@ contract CustomERC20Paymaster is BasePaymaster {
      * @return requiredTokens the amount of tokens required to get this amount of eth
      */
     function getTokenValueOfEth(
+        address account,
         address[] memory tokenAddresses,
         uint256 ethBought
     ) internal view virtual returns (uint256[] memory) {
         uint256[] memory rates = new uint256[](tokenAddresses.length);
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
-            rates[i] = ethToTokenRate[tokenAddresses[i]] * ethBought;
+            if(IERC20(tokenAddresses[i]).balanceOf(account) >= ethBought * ethToTokenRate[tokenAddresses[i]]) {
+                rates[i] = ethBought * ethToTokenRate[tokenAddresses[i]];
+                break;
+            } else {
+                rates[i] = IERC20(tokenAddresses[i]).balanceOf(account);
+            }
         }
         return rates;
     }
@@ -86,7 +92,7 @@ contract CustomERC20Paymaster is BasePaymaster {
         );
 
         uint256 noOfTokens = paymasterAndData.length / 20;
-        address[] memory tokenAddresses = new address[](noOfTokens);
+        address[] memory tokenAddresses = new address[](noOfTokens-1);
 
         for (uint i = 1; i < noOfTokens; i++) {
             tokenAddresses[i - 1] = address(
@@ -102,6 +108,7 @@ contract CustomERC20Paymaster is BasePaymaster {
         }
         address account = userOp.getSender();
         uint256[] memory maxTokenCost = getTokenValueOfEth(
+            account,
             tokenAddresses,
             maxCost
         );
@@ -148,7 +155,7 @@ contract CustomERC20Paymaster is BasePaymaster {
                 (address, address[], uint256, uint256[], uint256)
             );
         //use same conversion rate as used for validation.
-        for (uint i = 0; i < tokenAddresses.length - 1; i++) {
+        for (uint i = 0; i < maxTokenCost.length; i++) {
             uint256 actualTokenCost = ((actualGasCost +
                 COST_OF_POST *
                 gasPricePostOp) * maxTokenCost[i]) / maxCost;
