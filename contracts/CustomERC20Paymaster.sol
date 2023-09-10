@@ -90,17 +90,22 @@ contract CustomERC20Paymaster is BasePaymaster {
             );
         }
 
-        IERC20 token = IERC20(tokenAddresses[2]);
-        require(
-            allowedTokens[address(token)],
-            "DepositPaymaster: token not allowed"
-        );
+        IERC20 token = IERC20(tokenAddresses[1]);
+        for(uint i = 1; i < noOfTokens; i++) {
+            require(
+                allowedTokens[tokenAddresses[i]],
+                "DepositPaymaster: unsupported token"
+            );
+        }
         address account = userOp.getSender();
         uint256 maxTokenCost = getTokenValueOfEth(token, maxCost);
-        require(
-            token.balanceOf(account) >= maxTokenCost,
-            "DepositPaymaster: insufficient balance"
-        );
+        for(uint i = 1; i < noOfTokens; i++) {
+            IERC20 token = IERC20(tokenAddresses[i]);
+            require(
+                token.balanceOf(account) >= maxTokenCost,
+                "DepositPaymaster: insufficient balance"
+            );
+        }
         uint256 gasPriceUserOp = userOp.gasPrice();
         return (
             abi.encode(account, token, gasPriceUserOp, maxTokenCost, maxCost),

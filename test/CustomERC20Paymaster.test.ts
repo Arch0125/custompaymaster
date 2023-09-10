@@ -195,8 +195,8 @@ describe("CustomERC20Paymaster", function () {
     userOp.callData = execData;
     userOp.paymasterAndData = ethers.utils.hexConcat([
       custompaymaster.address,
-      token2.address,
       token1.address,
+      token2.address,
     ]);
 
     const rpcClient = new HttpRpcClient(
