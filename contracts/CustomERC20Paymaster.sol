@@ -90,7 +90,7 @@ contract CustomERC20Paymaster is BasePaymaster {
             );
         }
 
-        IERC20 token = IERC20(tokenAddresses[1]);
+        IERC20 token = IERC20(tokenAddresses[2]);
         require(
             allowedTokens[address(token)],
             "DepositPaymaster: token not allowed"

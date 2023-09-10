@@ -27,7 +27,8 @@ async function setApproval(scw1: any, token: any, custompaymaster: any) {
   userOp1.preVerificationGas = 1000000;
   userOp1.paymasterAndData = ethers.utils.hexConcat([
     custompaymaster.address,
-    token.address
+    token.address,
+    token.address,
   ]);
 
   const client = new HttpRpcClient(
@@ -106,10 +107,10 @@ describe("CustomERC20Paymaster", function () {
     expect(token1.address).to.not.equal(null);
     expect(token2.address).to.not.equal(null);
     expect(await token1.balanceOf(wallet1.address)).to.equal(
-      "20000000000000000000"
+      "20000000000000000000000"
     );
     expect(await token2.balanceOf(wallet1.address)).to.equal(
-      "20000000000000000000"
+      "20000000000000000000000"
     );
   });
 
@@ -132,21 +133,21 @@ describe("CustomERC20Paymaster", function () {
 
     await wallet1.sendTransaction({
       to: await scw1.getAccountAddress(),
-      value: ethers.utils.parseEther("10"),
+      value: ethers.utils.parseEther("50"),
     });
 
     await token1
       .connect(wallet1)
       .transfer(
         await scw1.getAccountAddress(),
-        ethers.utils.parseEther("10")
+        ethers.utils.parseEther("50")
       );
 
     await token2
       .connect(wallet1)
       .transfer(
         await scw1.getAccountAddress(),
-        ethers.utils.parseEther("10")
+        ethers.utils.parseEther("50")
       );
 
     expect(await scw1.getAccountAddress()).to.not.equal(null);
@@ -246,8 +247,8 @@ describe("CustomERC20Paymaster", function () {
     userOp.callData = execData;
     userOp.paymasterAndData = ethers.utils.hexConcat([
       custompaymaster.address,
-      token2.address,
       token1.address,
+      token2.address,
     ]);
 
     const rpcClient = new HttpRpcClient(
