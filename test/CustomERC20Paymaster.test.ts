@@ -47,7 +47,7 @@ async function setApproval(scw1: any, token: any, custompaymaster: any) {
     await scw1.getAccountAddress()
   );
 
-//   expect(postERC20Balance).to.lessThan(preERC20Balance);
+  //   expect(postERC20Balance).to.lessThan(preERC20Balance);
 }
 
 describe("CustomERC20Paymaster", function () {
@@ -138,17 +138,11 @@ describe("CustomERC20Paymaster", function () {
 
     await token1
       .connect(wallet1)
-      .transfer(
-        await scw1.getAccountAddress(),
-        ethers.utils.parseEther("50")
-      );
+      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("50"));
 
     await token2
       .connect(wallet1)
-      .transfer(
-        await scw1.getAccountAddress(),
-        ethers.utils.parseEther("50")
-      );
+      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("50"));
 
     expect(await scw1.getAccountAddress()).to.not.equal(null);
   });
@@ -177,6 +171,10 @@ describe("CustomERC20Paymaster", function () {
 
   it("should submit an user operation", async function () {
     const preERC20Balance = await token1.balanceOf(
+      await scw1.getAccountAddress()
+    );
+
+    const preERC20Balance2 = await token2.balanceOf(
       await scw1.getAccountAddress()
     );
 
@@ -215,15 +213,23 @@ describe("CustomERC20Paymaster", function () {
       {
         Description: "Before submitting UserOp",
         "Token 1 Balance": ethers.utils.formatEther(preERC20Balance.toString()),
+        "Token 2 Balance": ethers.utils.formatEther(
+          preERC20Balance2.toString()
+        ),
       },
       {
         Description: "After submitting UserOp",
         "Token 1 Balance": ethers.utils
           .formatEther(await token1.balanceOf(await scw1.getAccountAddress()))
           .toString(),
+        "Token 2 Balance": ethers.utils
+          .formatEther(await token2.balanceOf(await scw1.getAccountAddress()))
+          .toString(),
       },
     ];
-    console.log("================= User Operation submitted with Token 1 as Gas Token ==================");
+    console.log(
+      "================= User Operation submitted with Token 1 as Gas Token =================="
+    );
     console.table(tableData);
   });
 
@@ -231,6 +237,10 @@ describe("CustomERC20Paymaster", function () {
     const preERC20Balance = await token2.balanceOf(
       await scw1.getAccountAddress()
     );
+
+    const preERC20Balance1 = await token1.balanceOf(
+        await scw1.getAccountAddress()
+      );
 
     const userOp = await scw1.createUnsignedUserOp({
       target: wallet2.address,
@@ -264,16 +274,22 @@ describe("CustomERC20Paymaster", function () {
     const tableData = [
       {
         Description: "Before submitting UserOp",
+        "Token 1 Balance": ethers.utils.formatEther(preERC20Balance1.toString()),
         "Token 2 Balance": ethers.utils.formatEther(preERC20Balance.toString()),
       },
       {
         Description: "After submitting UserOp",
+        "Token 1 Balance": ethers.utils
+          .formatEther(await token1.balanceOf(await scw1.getAccountAddress()))
+          .toString(),
         "Token 2 Balance": ethers.utils
           .formatEther(await token2.balanceOf(await scw1.getAccountAddress()))
           .toString(),
       },
     ];
-    console.log("================= User Operation submitted with Token 2 as Gas Token ==================");
+    console.log(
+      "================= User Operation submitted with Token 2 as Gas Token =================="
+    );
     console.table(tableData);
   });
 });

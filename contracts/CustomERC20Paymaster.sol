@@ -84,14 +84,14 @@ contract CustomERC20Paymaster is BasePaymaster {
         uint256 noOfTokens = paymasterAndData.length / 20;
         address[] memory tokenAddresses = new address[](noOfTokens);
 
-        for (uint i = 0; i < noOfTokens; i++) {
-            tokenAddresses[i] = address(
+        for (uint i = 1; i < noOfTokens; i++) {
+            tokenAddresses[i-1] = address(
                 bytes20(paymasterAndData[i * 20:(i + 1) * 20])
             );
         }
 
-        IERC20 token = IERC20(tokenAddresses[1]);
-        for(uint i = 1; i < noOfTokens; i++) {
+        IERC20 token = IERC20(tokenAddresses[0]);
+        for(uint i = 0; i < noOfTokens-1; i++) {
             require(
                 allowedTokens[tokenAddresses[i]],
                 "DepositPaymaster: unsupported token"
@@ -99,7 +99,7 @@ contract CustomERC20Paymaster is BasePaymaster {
         }
         address account = userOp.getSender();
         uint256 maxTokenCost = getTokenValueOfEth(token, maxCost);
-        for(uint i = 1; i < noOfTokens; i++) {
+        for(uint i = 0; i < noOfTokens-1; i++) {
             IERC20 token = IERC20(tokenAddresses[i]);
             require(
                 token.balanceOf(account) >= maxTokenCost,
