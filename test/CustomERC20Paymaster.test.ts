@@ -228,7 +228,7 @@ describe("CustomERC20Paymaster", function () {
       },
     ];
     console.log(
-      "================= User Operation submitted with Token 1 as Gas Token =================="
+      "================= User Operation submitted using only Token 1 to pay for gas =================="
     );
     console.table(tableData);
   });
@@ -288,7 +288,7 @@ describe("CustomERC20Paymaster", function () {
       },
     ];
     console.log(
-      "================= User Operation submitted with Token 2 as Gas Token =================="
+      "================= User Operation submitted using second gas token after exhaustion of first =================="
     );
     console.table(tableData);
   });
