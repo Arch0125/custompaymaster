@@ -194,6 +194,7 @@ describe("CustomERC20Paymaster", function () {
     userOp.callData = execData;
     userOp.paymasterAndData = ethers.utils.hexConcat([
       custompaymaster.address,
+      token2.address,
       token1.address,
     ]);
 
@@ -225,7 +226,7 @@ describe("CustomERC20Paymaster", function () {
     console.table(tableData);
   });
 
-  it.skip("should submit userop with token2 as gas token", async function () {
+  it("should submit userop with token2 as gas token", async function () {
     const preERC20Balance = await token2.balanceOf(
       await scw1.getAccountAddress()
     );
@@ -246,6 +247,7 @@ describe("CustomERC20Paymaster", function () {
     userOp.paymasterAndData = ethers.utils.hexConcat([
       custompaymaster.address,
       token2.address,
+      token1.address,
     ]);
 
     const rpcClient = new HttpRpcClient(
