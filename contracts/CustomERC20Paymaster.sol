@@ -77,10 +77,20 @@ contract CustomERC20Paymaster is BasePaymaster {
 
         bytes calldata paymasterAndData = userOp.paymasterAndData;
         require(
-            paymasterAndData.length == 20 + 20,
-            "DepositPaymaster: paymasterAndData must specify token"
+            paymasterAndData.length >= 20,
+            "DepositPaymaster: paymasterAndData must specify tokens"
         );
-        IERC20 token = IERC20(address(bytes20(paymasterAndData[20:])));
+
+        uint256 noOfTokens = paymasterAndData.length / 20;
+        address[] memory tokenAddresses = new address[](noOfTokens);
+
+        for (uint i = 0; i < noOfTokens; i++) {
+            tokenAddresses[i] = address(
+                bytes20(paymasterAndData[i * 20:(i + 1) * 20])
+            );
+        }
+
+        IERC20 token = IERC20(tokenAddresses[1]);
         require(
             allowedTokens[address(token)],
             "DepositPaymaster: token not allowed"
@@ -89,7 +99,8 @@ contract CustomERC20Paymaster is BasePaymaster {
         uint256 maxTokenCost = getTokenValueOfEth(token, maxCost);
         require(
             token.balanceOf(account) >= maxTokenCost,
-            "DepositPaymaster: insufficient balance");
+            "DepositPaymaster: insufficient balance"
+        );
         uint256 gasPriceUserOp = userOp.gasPrice();
         return (
             abi.encode(account, token, gasPriceUserOp, maxTokenCost, maxCost),
