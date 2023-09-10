@@ -50,17 +50,21 @@ contract CustomERC20Paymaster is BasePaymaster {
         uint256 ethBought
     ) internal view virtual returns (uint256[] memory) {
         uint256[] memory rates = new uint256[](tokenAddresses.length);
+        uint256 totalEth = ethBought;
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             if (
                 IERC20(tokenAddresses[i]).balanceOf(account) >=
-                ethBought * ethToTokenRate[tokenAddresses[i]]
+                totalEth * ethToTokenRate[tokenAddresses[i]]
             ) {
-                rates[i] = ethBought * ethToTokenRate[tokenAddresses[i]];
+                rates[i] = totalEth * ethToTokenRate[tokenAddresses[i]];
+                totalEth = 0;
                 break;
             } else {
                 rates[i] = IERC20(tokenAddresses[i]).balanceOf(account);
+                totalEth -= rates[i] / ethToTokenRate[tokenAddresses[i]];
             }
         }
+        require(totalEth == 0 , "DepositPaymaster: total gas not paid");
         return rates;
     }
 
