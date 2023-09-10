@@ -41,15 +41,19 @@ contract CustomERC20Paymaster is BasePaymaster {
 
     /**
      * translate the given eth value to token amount
-     * @param token the token to use
+     * @param tokenAddresses the token to use
      * @param ethBought the required eth value we want to "buy"
      * @return requiredTokens the amount of tokens required to get this amount of eth
      */
     function getTokenValueOfEth(
-        IERC20 token,
+        address[] memory tokenAddresses,
         uint256 ethBought
-    ) internal view virtual returns (uint256 requiredTokens) {
-        return (ethBought * ethToTokenRate[address(token)]);
+    ) internal view virtual returns (uint256[] memory) {
+        uint256[] memory rates = new uint256[](tokenAddresses.length);
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            rates[i] = ethToTokenRate[tokenAddresses[i]] * ethBought;
+        }
+        return rates;
     }
 
     /**
@@ -85,30 +89,38 @@ contract CustomERC20Paymaster is BasePaymaster {
         address[] memory tokenAddresses = new address[](noOfTokens);
 
         for (uint i = 1; i < noOfTokens; i++) {
-            tokenAddresses[i-1] = address(
+            tokenAddresses[i - 1] = address(
                 bytes20(paymasterAndData[i * 20:(i + 1) * 20])
             );
         }
 
-        IERC20 token = IERC20(tokenAddresses[0]);
-        for(uint i = 0; i < noOfTokens-1; i++) {
+        for (uint i = 0; i < noOfTokens - 1; i++) {
             require(
                 allowedTokens[tokenAddresses[i]],
                 "DepositPaymaster: unsupported token"
             );
         }
         address account = userOp.getSender();
-        uint256 maxTokenCost = getTokenValueOfEth(token, maxCost);
-        for(uint i = 0; i < noOfTokens-1; i++) {
+        uint256[] memory maxTokenCost = getTokenValueOfEth(
+            tokenAddresses,
+            maxCost
+        );
+        for (uint i = 0; i < noOfTokens - 1; i++) {
             IERC20 token = IERC20(tokenAddresses[i]);
             require(
-                token.balanceOf(account) >= maxTokenCost,
+                token.balanceOf(account) >= maxTokenCost[i],
                 "DepositPaymaster: insufficient balance"
             );
         }
         uint256 gasPriceUserOp = userOp.gasPrice();
         return (
-            abi.encode(account, token, gasPriceUserOp, maxTokenCost, maxCost),
+            abi.encode(
+                account,
+                tokenAddresses,
+                gasPriceUserOp,
+                maxTokenCost,
+                maxCost
+            ),
             0
         );
     }
@@ -127,15 +139,21 @@ contract CustomERC20Paymaster is BasePaymaster {
     ) internal override {
         (
             address account,
-            IERC20 token,
+            address[] memory tokenAddresses,
             uint256 gasPricePostOp,
-            uint256 maxTokenCost,
+            uint256[] memory maxTokenCost,
             uint256 maxCost
-        ) = abi.decode(context, (address, IERC20, uint256, uint256, uint256));
+        ) = abi.decode(
+                context,
+                (address, address[], uint256, uint256[], uint256)
+            );
         //use same conversion rate as used for validation.
-        uint256 actualTokenCost = ((actualGasCost +
-            COST_OF_POST *
-            gasPricePostOp) * maxTokenCost) / maxCost;
-        token.safeTransferFrom(account, address(this), actualTokenCost);
+        for (uint i = 0; i < tokenAddresses.length - 1; i++) {
+            uint256 actualTokenCost = ((actualGasCost +
+                COST_OF_POST *
+                gasPricePostOp) * maxTokenCost[i]) / maxCost;
+            IERC20 token = IERC20(tokenAddresses[i]);
+            token.safeTransferFrom(account, address(this), actualTokenCost);
+        }
     }
 }
