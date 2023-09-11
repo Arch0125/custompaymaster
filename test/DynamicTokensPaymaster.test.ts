@@ -1,6 +1,6 @@
 import { fillAndSign } from "../src/account-abstraction/test/UserOp";
 import { HttpRpcClient, SimpleAccountAPI } from "@account-abstraction/sdk";
-import PaymasterArtifact from "../artifacts/contracts/CustomERC20Paymaster.sol/CustomERC20Paymaster.json";
+import PaymasterArtifact from "../artifacts/contracts/DynamicTokensPaymaster.sol/DynamicTokensPaymaster.json";
 import TestTokenArtifact from "../artifacts/contracts/TestToken.sol/TestToken.json";
 import { ethers } from "ethers";
 import { expect } from "chai";
@@ -50,7 +50,7 @@ async function setApproval(scw1: any, token: any, custompaymaster: any) {
   //   expect(postERC20Balance).to.lessThan(preERC20Balance);
 }
 
-describe("CustomERC20Paymaster", function () {
+describe("Dynamic Token Paymaster Tests", function () {
   const mnemonic =
     "test test test test test test test test test test test junk";
   const provider = ethers.getDefaultProvider("http://127.0.0.1:8545");
@@ -83,10 +83,11 @@ describe("CustomERC20Paymaster", function () {
     );
 
     custompaymaster = await customPaymasterContract.deploy(
+        "0x3647fABd9F0a8CF5CCd9246Cd559BB2E40a8c43F",
       "0x7aD823A5cA21768a3D3041118Bc6e981B0e4D5ee"
     );
 
-    console.log(`CustomPaymaster deployed to ${custompaymaster.address}`);
+    console.log(`Dynamic Tokens Paymaster deployed to ${custompaymaster.address}`);
     expect(custompaymaster.address).to.not.equal(null);
   });
 
@@ -138,7 +139,7 @@ describe("CustomERC20Paymaster", function () {
 
     await token1
       .connect(wallet1)
-      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("10"));
+      .transfer(await scw1.getAccountAddress(), ethers.utils.parseEther("8"));
 
     await token2
       .connect(wallet1)
