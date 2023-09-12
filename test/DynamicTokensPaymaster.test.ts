@@ -294,7 +294,7 @@ describe("Dynamic Token Paymaster Tests", function () {
       },
     ];
     console.log(
-      "================= User Operation (send 3 token2) submitted using second gas token after exhaustion of first =================="
+      "================= User Operation submitted using second gas token after exhaustion of first =================="
     );
     console.table(tableData);
   });
@@ -360,7 +360,7 @@ describe("Dynamic Token Paymaster Tests", function () {
       },
     ];
     console.log(
-      "================= User Operation submitted using second gas token after exhaustion of first =================="
+      "================= User Operation (transfer 3 token2(s)) submitted using only second gas token =================="
     );
     console.table(tableData);
   });
